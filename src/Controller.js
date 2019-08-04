@@ -1,19 +1,41 @@
 const sleep = require('then-sleep');
-const config = require('../config');
-const Telegram = require('./Telegram');
-const Bitmex = require('./Bitmex');
+const Task = require('./Task');
 
 class Controller {
-    constructor() {
-        this._bitmex = new Bitmex();
-        this._telegram = new Telegram();
+    constructor(bitmex) {
+        this._bitmex = bitmex;
+        this._task = null;
     }
 
-    async start() {
-        while (true) {
-            //
-            await sleep(config.controllerTimeoutInterval);
+    async getStatus() {
+        // TODO -
+    }
+
+    async makeTask(params) {
+        if (this._task) {
+            return 'Already have a task!';
         }
+
+        this._task = new Task(this._bitmex, params);
+
+        return await this.getStatus();
+    }
+
+    async cancel() {
+        if (!this._task) {
+            return 'No any tasks!';
+        }
+
+        await this._task.cancel();
+        this._task = null;
+
+        return await this.getStatus();
+    }
+
+    async toZero() {
+        // TODO -
+
+        return await this.getStatus();
     }
 }
 

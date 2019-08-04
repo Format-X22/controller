@@ -35,6 +35,8 @@
     ]
   },
   "dependencies": {
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "then-sleep": "^1.0.1"

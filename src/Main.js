@@ -1,6 +1,5 @@
 const Controller = require('./Controller');
-const controller = new Controller();
+const Bitmex = require('./Bitmex');
+const Server = require('./Server');
 
-controller.start().catch(error => {
-    console.error('Cant start!', error);
-});
+new Server(new Controller(new Bitmex()));
