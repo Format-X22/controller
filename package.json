@@ -1,0 +1,42 @@
+{
+  "name": "controller",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/Main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Format-X22/controller.git"
+  },
+  "author": "Format-X22",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Format-X22/controller/issues"
+  },
+  "homepage": "https://github.com/Format-X22/controller#readme",
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 4,
+    "semi": true,
+    "trailingComma": "es5",
+    "printWidth": 100,
+    "overrides": [
+      {
+        "files": [
+          "*.yml",
+          "*.json"
+        ],
+        "options": {
+          "tabWidth": 2
+        }
+      }
+    ]
+  },
+  "dependencies": {
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
+    "then-sleep": "^1.0.1"
+  }
+}
