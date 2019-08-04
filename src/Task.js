@@ -6,6 +6,10 @@ class Task {
     async cancel() {
         // TODO -
     }
+
+    explain() {
+        // TODO -
+    }
 }
 
 module.exports = Task;

@@ -36,7 +36,6 @@ class Server {
     async _checkMethod(context, next) {
         if (context.request.method !== 'POST') {
             context.response.status = 405;
-            context.response.message = 'Unsupported method';
             return;
         }
 
@@ -51,24 +50,24 @@ class Server {
 
             switch (path) {
                 case 'status':
-                    response.message = await this._controller.getStatus();
+                    response.body = await this._controller.getStatus();
                     break;
 
                 case 'task':
-                    response.message = await this._controller.makeTask(params);
+                    response.body = await this._controller.makeTask(params);
                     break;
 
                 case 'cancel':
-                    response.message = await this._controller.cancel();
+                    response.body = await this._controller.cancel();
                     break;
 
                 case 'zero':
-                    response.message = await this._controller.toZero();
+                    response.body = await this._controller.toZero();
                     break;
 
                 default:
                     context.response.status = 404;
-                    context.response.message = `Undefined path ${path}`;
+                    context.response.body = `Undefined path ${path}`;
             }
         });
     }
