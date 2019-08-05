@@ -27,12 +27,13 @@ class Task {
         if (moveDirection === 'up') {
             this._step = (after5 - this._price) / 5;
         } else {
-            this._step = (this._price - after5) / 5;
+            this._step = -(this._price - after5) / 5;
         }
 
         this._bitmex = bitmex;
         this._orderID = null;
         this._currentPrice = this._price;
+        this._active = true;
 
         setImmediate(this._start.bind(this));
     }
@@ -41,6 +42,10 @@ class Task {
         await this._initOrder();
 
         while (true) {
+            if (!this._active) {
+                return;
+            }
+
             const hours = new Date().getHours();
 
             if (this._currentHours !== hours) {
@@ -59,14 +64,17 @@ class Task {
 
     async _iteration() {
         const hoursDiff = (new Date() - this._startDate) / 1000 / 60 / 60;
-        const price = Math.round(this._price + this._step * hoursDiff);
+        const price = Math.round(this._currentPrice + this._step * Math.ceil(hoursDiff));
 
         this._currentPrice = price;
 
-        await this._bitmex.moveOrder(this._orderID, price, this._value);
+        const result = await this._bitmex.moveOrder(this._orderID, price, this._value);
+
+        this._orderID = result.orderID;
     }
 
     async cancel() {
+        this._active = false;
         await this._bitmex.cancelOrder(this._orderID);
     }
 

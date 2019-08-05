@@ -100,7 +100,7 @@ class Bitmex {
             } catch (error) {
                 const now = new Date();
 
-                console.log(now, error.message);
+                console.log(now, error);
                 this._lastError = `${now} :: ${error.message}`;
 
                 await sleep(5000);
