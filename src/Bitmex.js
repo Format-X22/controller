@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const request = require('request-promise-native');
 const sleep = require('then-sleep');
-const config = require('../config');
 
 const DOMAIN = 'https://www.bitmex.com';
 const API_POINT = '/api/v1/';
@@ -115,7 +114,7 @@ class Bitmex {
         const body = JSON.stringify(params);
 
         const signature = crypto
-            .createHmac('sha256', config.bitmexPrivateKey)
+            .createHmac('sha256', process.env.bitmexPrivateKey)
             .update(`${method}${path}${expires}${body}`)
             .digest('hex');
 
@@ -124,7 +123,7 @@ class Bitmex {
             Accept: 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
             'api-expires': expires,
-            'api-key': config.bitmexPublicKey,
+            'api-key': process.env.bitmexPublicKey,
             'api-signature': signature,
         };
 

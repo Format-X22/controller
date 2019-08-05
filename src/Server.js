@@ -1,4 +1,3 @@
-const config = require('../config');
 const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 
@@ -25,7 +24,7 @@ class Server {
     }
 
     async _checkAuth(context, next) {
-        if (context.request.body.password !== config.password) {
+        if (context.request.body.password !== process.env.password) {
             context.response.status = 403;
             return;
         }
