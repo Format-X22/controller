@@ -25,6 +25,7 @@ class Controller {
         }
 
         status.lastSync = this._bitmex.getLastSync();
+        status.lastError = this._bitmex.getLastError();
 
         return JSON.stringify(status, null, 2);
     }
@@ -57,7 +58,7 @@ class Controller {
     async toZero() {
         const enterPrice = await this._bitmex.getPositionEnterPrice();
 
-        await this._bitmex.closeOrder(enterPrice);
+        await this._bitmex.closePosition(enterPrice);
 
         return await this.getStatus();
     }
