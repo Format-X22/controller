@@ -9,11 +9,17 @@ class Controller {
     }
 
     async getStatus() {
+        sleep(1000);
+
         const status = {};
         const position = await this._bitmex.getPosition();
 
-        if (position) {
-            status.position = position;
+        if (position.avgEntryPrice) {
+            status.position = {
+                entry: position.avgEntryPrice,
+                timestamp: position.timestamp,
+                liquidation: position.liquidationPrice,
+            };
         } else {
             status.position = 'None';
         }
@@ -39,7 +45,15 @@ class Controller {
             return 'Already have a order!';
         }
 
-        this._task = new Task(this._bitmex, params);
+        try {
+            this._task = new Task(this._bitmex, params);
+        } catch (error) {
+            if (error.code === 400) {
+                return error.message;
+            } else {
+                throw error;
+            }
+        }
 
         return await this.getStatus();
     }
@@ -56,6 +70,10 @@ class Controller {
     }
 
     async toZero() {
+        if (!(await this._bitmex.hasPosition())) {
+            return 'No any positions!';
+        }
+
         const enterPrice = await this._bitmex.getPositionEnterPrice();
 
         await this._bitmex.closePosition(enterPrice);

@@ -1,12 +1,35 @@
 const sleep = require('then-sleep');
 
 class Task {
-    constructor(bitmex, { price, value, step5 }) {
+    constructor(bitmex, { price, value, after5, side, moveDirection }) {
+        if (!Number(price) || !Number(value) || !Number(after5)) {
+            throw { code: 400, message: 'Invalid params' };
+        }
+
+        if (side !== 'long' && side !== 'short') {
+            throw { code: 400, message: 'Invalid side' };
+        }
+
+        if (moveDirection !== 'up' && moveDirection !== 'down') {
+            throw { code: 400, message: 'Invalid direction' };
+        }
+
         this._startDate = new Date();
         this._currentHours = this._startDate.getHours();
-        this._price = price;
-        this._value = value;
-        this._step = step5 / 5;
+        this._price = Number(price);
+
+        if (side === 'long') {
+            this._value = Number(value);
+        } else {
+            this._value = -Number(value);
+        }
+
+        if (moveDirection === 'up') {
+            this._step = (after5 - this._price) / 5;
+        } else {
+            this._step = (this._price - after5) / 5;
+        }
+
         this._bitmex = bitmex;
         this._orderID = null;
         this._currentPrice = this._price;
@@ -24,7 +47,7 @@ class Task {
                 this._currentHours = hours;
                 await this._iteration();
             }
-            sleep(5000);
+            await sleep(5000);
         }
     }
 
