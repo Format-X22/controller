@@ -79,11 +79,18 @@ class Task {
     }
 
     explain() {
+        let after10Price = this._currentPrice;
+
+        for (let i = 0; i < 10; i++) {
+            after10Price += this._step;
+        }
+
         return {
             startDate: this._startDate,
             initPrice: this._price,
             currentPrice: this._currentPrice,
             nextPrice: this._currentPrice + this._step,
+            after10Price,
             step: this._step,
         };
     }
