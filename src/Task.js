@@ -38,11 +38,42 @@ class Task {
         setImmediate(this._start.bind(this));
     }
 
+    async cancel() {
+        this._active = false;
+        await this._bitmex.cancelOrder(this._orderID);
+    }
+
+    isActive() {
+        return this._active;
+    }
+
+    explain() {
+        let after10Price = this._currentPrice;
+
+        for (let i = 0; i < 10; i++) {
+            after10Price += this._step;
+        }
+
+        return {
+            startDate: this._startDate,
+            initPrice: this._price,
+            currentPrice: this._currentPrice,
+            nextPrice: this._currentPrice + this._step,
+            after10Price,
+            step: this._step,
+        };
+    }
+
     async _start() {
         await this._initOrder();
 
         while (true) {
             if (!this._active) {
+                return;
+            }
+
+            if (await this._bitmex.hasPosition()) {
+                this._active = false;
                 return;
             }
 
@@ -63,36 +94,13 @@ class Task {
     }
 
     async _iteration() {
-        const hoursDiff = (new Date() - this._startDate) / 1000 / 60 / 60;
-        const price = Math.round(this._currentPrice + this._step * Math.ceil(hoursDiff));
+        const price = Math.round(this._currentPrice + this._step);
 
         this._currentPrice = price;
 
         const result = await this._bitmex.moveOrder(this._orderID, price, this._value);
 
         this._orderID = result.orderID;
-    }
-
-    async cancel() {
-        this._active = false;
-        await this._bitmex.cancelOrder(this._orderID);
-    }
-
-    explain() {
-        let after10Price = this._currentPrice;
-
-        for (let i = 0; i < 10; i++) {
-            after10Price += this._step;
-        }
-
-        return {
-            startDate: this._startDate,
-            initPrice: this._price,
-            currentPrice: this._currentPrice,
-            nextPrice: this._currentPrice + this._step,
-            after10Price,
-            step: this._step,
-        };
     }
 }
 

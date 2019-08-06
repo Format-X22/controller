@@ -24,6 +24,10 @@ class Controller {
             status.position = 'None';
         }
 
+        if (this._task && !this._task.isActive()) {
+            this._task = null;
+        }
+
         if (this._task) {
             status.task = this._task.explain();
         } else {
