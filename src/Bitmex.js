@@ -57,7 +57,13 @@ class Bitmex {
         return await this._request({
             point: 'order',
             method: 'POST',
-            params: { symbol: 'XBTUSD', type: 'Stop', stopPx: price, orderQty: value },
+            params: {
+                symbol: 'XBTUSD',
+                type: 'Stop',
+                stopPx: price,
+                orderQty: value,
+                timeInForce: 'GoodTillCancel',
+            },
         });
     }
 
