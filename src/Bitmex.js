@@ -63,6 +63,7 @@ class Bitmex {
                 stopPx: price,
                 orderQty: value,
                 timeInForce: 'GoodTillCancel',
+                execInst: 'LastPrice',
             },
         });
     }
