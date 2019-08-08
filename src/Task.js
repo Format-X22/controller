@@ -87,6 +87,11 @@ class Task {
                 return;
             }
 
+            if (this._bitmex.hasPosition()) {
+                await this.cancel();
+                return;
+            }
+
             const hours = new Date().getHours();
 
             if (this._currentHours !== hours) {
