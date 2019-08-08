@@ -87,7 +87,7 @@ class Task {
                 return;
             }
 
-            if (this._bitmex.hasPosition()) {
+            if (await this._bitmex.hasPosition()) {
                 await this.cancel();
                 return;
             }
