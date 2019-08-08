@@ -57,24 +57,23 @@ class Bitmex {
                 orderQty: value,
                 timeInForce: 'GoodTillCancel',
                 execInst: 'LastPrice',
-                clOrdID: uuid.v4(),
             },
         });
     }
 
-    async moveOrder(clOrdID, price, value) {
+    async moveOrder(orderID, price, value) {
         return await this._request({
             point: 'order',
             method: 'PUT',
-            params: { clOrdID, stopPx: price, orderQty: value },
+            params: { orderID, stopPx: price, orderQty: value },
         });
     }
 
-    async cancelOrder(clOrdID) {
+    async cancelOrder(orderID) {
         return await this._request({
             point: 'order',
             method: 'DELETE',
-            params: { clOrdID },
+            params: { orderID },
         });
     }
 
