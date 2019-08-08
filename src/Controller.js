@@ -5,7 +5,7 @@ const Task = require('./Task');
 class Controller {
     constructor() {
         this._bitmex = new Bitmex();
-        this._task = null;
+        this._tasks = new Set();
     }
 
     async getStatus() {
@@ -24,14 +24,14 @@ class Controller {
             status.position = 'None';
         }
 
-        if (this._task && !this._task.isActive()) {
-            this._task = null;
-        }
+        status.tasks = [];
 
-        if (this._task) {
-            status.task = this._task.explain();
-        } else {
-            status.task = 'None';
+        for (const task of this._tasks) {
+            if (task.isActive()) {
+                status.tasks.push(task.explain());
+            } else {
+                setImmediate(() => this._tasks.delete(task));
+            }
         }
 
         status.lastSync = this._bitmex.getLastSync();
@@ -41,16 +41,10 @@ class Controller {
     }
 
     async makeTask(params) {
-        if (this._task) {
-            return 'Already have a task!';
-        }
-
-        if (await this._bitmex.hasPosition()) {
-            return 'Already have a order!';
-        }
-
         try {
-            this._task = new Task(this._bitmex, params);
+            const task = new Task(this._bitmex, params);
+
+            this._tasks.add(task);
         } catch (error) {
             if (error.code === 400) {
                 return error.message;
@@ -63,24 +57,14 @@ class Controller {
     }
 
     async cancel() {
-        if (!this._task) {
+        if (!this._tasks.size) {
             return 'No any tasks!';
         }
 
-        await this._task.cancel();
-        this._task = null;
-
-        return await this.getStatus();
-    }
-
-    async toZero() {
-        if (!(await this._bitmex.hasPosition())) {
-            return 'No any positions!';
+        for (const task of this._tasks) {
+            await task.cancel();
+            this._tasks.delete(task);
         }
-
-        const enterPrice = await this._bitmex.getPositionEnterPrice();
-
-        await this._bitmex.closePosition(enterPrice);
 
         return await this.getStatus();
     }

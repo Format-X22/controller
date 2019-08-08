@@ -1,3 +1,4 @@
+const uuid = require('uuid');
 const crypto = require('crypto');
 const request = require('request-promise-native');
 const sleep = require('then-sleep');
@@ -37,20 +38,12 @@ class Bitmex {
         return Boolean(position.avgEntryPrice);
     }
 
-    async getOrder() {
-        const orders = await this._request({
+    async getOrders() {
+        return await this._request({
             point: 'order',
             method: 'GET',
             params: { symbol: 'XBTUSD', filter: { open: true } },
         });
-
-        return orders[0];
-    }
-
-    async getPositionEnterPrice() {
-        const position = await this.getPosition();
-
-        return position.avgEntryPrice;
     }
 
     async placeOrder(price, value) {
@@ -64,31 +57,24 @@ class Bitmex {
                 orderQty: value,
                 timeInForce: 'GoodTillCancel',
                 execInst: 'LastPrice',
+                clOrdID: uuid.v4(),
             },
         });
     }
 
-    async moveOrder(orderID, price, value) {
+    async moveOrder(clOrdID, price, value) {
         return await this._request({
             point: 'order',
             method: 'PUT',
-            params: { orderID, stopPx: price, orderQty: value },
+            params: { clOrdID, stopPx: price, orderQty: value },
         });
     }
 
-    async cancelOrder(orderID) {
+    async cancelOrder(clOrdID) {
         return await this._request({
             point: 'order',
             method: 'DELETE',
-            params: { orderID },
-        });
-    }
-
-    async closePosition(price) {
-        return await this._request({
-            point: 'order/closePosition',
-            method: 'POST',
-            params: { symbol: 'XBTUSD', price },
+            params: { clOrdID },
         });
     }
 

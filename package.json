@@ -1,6 +1,6 @@
 {
   "name": "controller",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "",
   "main": "src/Main.js",
   "scripts": {
@@ -40,6 +40,7 @@
     "koa-bodyparser": "^4.2.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
-    "then-sleep": "^1.0.1"
+    "then-sleep": "^1.0.1",
+    "uuid": "^3.3.2"
   }
 }

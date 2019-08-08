@@ -31,7 +31,7 @@ class Task {
         }
 
         this._bitmex = bitmex;
-        this._orderID = null;
+        this._clOrdID = null;
         this._currentPrice = this._price;
         this._active = true;
 
@@ -40,7 +40,7 @@ class Task {
 
     async cancel() {
         this._active = false;
-        await this._bitmex.cancelOrder(this._orderID);
+        await this._bitmex.cancelOrder(this._clOrdID);
     }
 
     isActive() {
@@ -72,7 +72,17 @@ class Task {
                 return;
             }
 
-            if (await this._bitmex.hasPosition()) {
+            const orders = await this._bitmex.getOrders();
+            let orderLive = false;
+
+            for (const order of orders) {
+                if (order.clOrdID === this._clOrdID) {
+                    orderLive = true;
+                    break;
+                }
+            }
+
+            if (!orderLive) {
                 this._active = false;
                 return;
             }
@@ -90,7 +100,7 @@ class Task {
     async _initOrder() {
         const result = await this._bitmex.placeOrder(this._price, this._value);
 
-        this._orderID = result.orderID;
+        this._clOrdID = result.clOrdID;
     }
 
     async _iteration() {
@@ -98,9 +108,7 @@ class Task {
 
         this._currentPrice = price;
 
-        const result = await this._bitmex.moveOrder(this._orderID, price, this._value);
-
-        this._orderID = result.orderID;
+        await this._bitmex.moveOrder(this._clOrdID, price, this._value);
     }
 }
 
