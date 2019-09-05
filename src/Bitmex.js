@@ -35,7 +35,7 @@ class Bitmex {
     async hasPosition() {
         const position = await this.getPosition();
 
-        return Boolean(position.avgEntryPrice);
+        return Boolean(position && position.avgEntryPrice);
     }
 
     async getOrders() {
