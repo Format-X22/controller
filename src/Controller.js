@@ -14,7 +14,7 @@ class Controller {
         const status = {};
         const position = await this._bitmex.getPosition();
 
-        if (position.avgEntryPrice) {
+        if (position && position.avgEntryPrice) {
             status.position = {
                 entry: position.avgEntryPrice,
                 timestamp: position.timestamp,
