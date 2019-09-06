@@ -17,11 +17,33 @@ type TAuthHeaders = {
     'api-signature': string;
 };
 
-type TRequestOptions = {
+type THttpRequestData = {
     headers: TAuthHeaders;
     url: string;
     method: string;
     body: string;
+};
+
+type TRequestOptions = {
+    point: string;
+    method: string;
+    params: unknown;
+};
+
+type TRequestParamsDict = {
+    orderID: string;
+    price: number;
+    value: number;
+};
+
+export type TPosition = {
+    avgEntryPrice: number;
+    timestamp: string;
+    liquidationPrice: number;
+};
+
+export type TOrder = {
+    orderID: string;
 };
 
 export class Bitmex {
@@ -40,8 +62,8 @@ export class Bitmex {
         await Utils.sleep(PING_SLEEP);
     }
 
-    async getPosition() {
-        const positions = await this.request({
+    async getPosition(): Promise<TPosition> {
+        const positions: TPosition[] = await this.request<TPosition[]>({
             point: 'position',
             method: 'GET',
             params: { filter: { symbol: 'XBTUSD' } },
@@ -51,21 +73,24 @@ export class Bitmex {
     }
 
     async hasPosition(): Promise<boolean> {
-        const position = await this.getPosition();
+        const position: TPosition = await this.getPosition();
 
         return Boolean(position && position.avgEntryPrice);
     }
 
-    async getOrders() {
-        return await this.request({
+    async getOrders(): Promise<TOrder[]> {
+        return await this.request<TOrder[]>({
             point: 'order',
             method: 'GET',
             params: { symbol: 'XBTUSD', filter: { open: true } },
         });
     }
 
-    async placeOrder(price: number, value: number) {
-        return await this.request({
+    async placeOrder(
+        price: TRequestParamsDict['price'],
+        value: TRequestParamsDict['value']
+    ): Promise<TOrder> {
+        return await this.request<TOrder>({
             point: 'order',
             method: 'POST',
             params: {
@@ -79,7 +104,11 @@ export class Bitmex {
         });
     }
 
-    async moveOrder(orderID, price, value) {
+    async moveOrder(
+        orderID: TRequestParamsDict['orderID'],
+        price: TRequestParamsDict['price'],
+        value: TRequestParamsDict['value']
+    ): Promise<unknown> {
         return await this.request({
             point: 'order',
             method: 'PUT',
@@ -87,7 +116,7 @@ export class Bitmex {
         });
     }
 
-    async cancelOrder(orderID) {
+    async cancelOrder(orderID: TRequestParamsDict['orderID']): Promise<unknown> {
         return await this.request({
             point: 'order',
             method: 'DELETE',
@@ -103,10 +132,10 @@ export class Bitmex {
         return this.lastError;
     }
 
-    private async request(args) {
+    private async request<T>(args: TRequestOptions): Promise<T> {
         while (true) {
             try {
-                return await this.tryRequest(args);
+                return await this.tryRequest<T>(args);
             } catch (error) {
                 const now: Date = new Date();
 
@@ -118,15 +147,7 @@ export class Bitmex {
         }
     }
 
-    private async tryRequest({
-        point,
-        method,
-        params,
-    }: {
-        point: string;
-        method: string;
-        params: any;
-    }) {
+    private async tryRequest<T>({ point, method, params }: TRequestOptions): Promise<T> {
         const path: string = `${API_POINT}${point}`;
         const expires: number = Math.round(new Date().getTime() / ONE_SECOND) + MINUTE_IN_SECONDS;
         const body: string = JSON.stringify(params);
@@ -145,7 +166,7 @@ export class Bitmex {
             'api-signature': signature,
         };
 
-        const requestOptions: TRequestOptions = {
+        const requestOptions: THttpRequestData = {
             headers: headers,
             url: `${DOMAIN}${path}`,
             method,

@@ -1,4 +1,4 @@
-import { Bitmex } from './Bitmex';
+import { Bitmex, TPosition } from './Bitmex';
 import { Utils } from './Utils';
 import { Task, TExplain, TTaskOptions } from './Task';
 import { ONE_SECOND } from './Constants';
@@ -8,9 +8,9 @@ const STATUS_JSON_SPACES: number = 2;
 type TStatus = {
     position:
         | {
-              entry: string;
-              timestamp: number;
-              liquidationPrice: number;
+              entry: number;
+              timestamp: string;
+              liquidation: number;
           }
         | 'None';
     tasks: TExplain[];
@@ -36,7 +36,7 @@ export class Controller {
             lastSync: this.bitmex.getLastSync(),
             lastError: this.bitmex.getLastError(),
         };
-        const position = await this.bitmex.getPosition();
+        const position: TPosition = await this.bitmex.getPosition();
 
         if (position && position.avgEntryPrice) {
             status.position = {

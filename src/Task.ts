@@ -1,5 +1,5 @@
 import { Utils } from './Utils';
-import { Bitmex } from './Bitmex';
+import { Bitmex, TOrder } from './Bitmex';
 
 const AFTER_5: number = 5;
 const AFTER_10: number = 10;
@@ -104,7 +104,7 @@ export class Task {
                 return;
             }
 
-            const orders = await this.bitmex.getOrders();
+            const orders: TOrder[] = await this.bitmex.getOrders();
             let orderLive: boolean = false;
 
             for (const order of orders) {
@@ -134,8 +134,8 @@ export class Task {
         }
     }
 
-    private async initOrder() {
-        const result = await this.bitmex.placeOrder(this.price, this.value);
+    private async initOrder(): Promise<void> {
+        const result: TOrder = await this.bitmex.placeOrder(this.price, this.value);
 
         this.orderID = result.orderID;
     }

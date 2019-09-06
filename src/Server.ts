@@ -1,6 +1,7 @@
 import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
 import { Controller } from './Controller';
+import { HttpCodes } from './HttpCodes';
 
 const DEFAULT_PORT: number = 3000;
 
@@ -67,7 +68,7 @@ export class Server {
                     break;
 
                 default:
-                    context.response.TStatus = HttpCodes.notFound;
+                    context.response.status = HttpCodes.notFound;
                     context.response.body = `Undefined path ${path}`;
             }
         });
