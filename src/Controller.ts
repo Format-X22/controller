@@ -2,6 +2,7 @@ import { Bitmex, TPosition } from './Bitmex';
 import { Utils } from './Utils';
 import { Task, TExplain, TTaskOptions } from './Task';
 import { ONE_SECOND } from './Constants';
+import { HttpCodes } from './HttpCodes';
 
 const STATUS_JSON_SPACES: number = 2;
 

@@ -1,5 +1,6 @@
 import { Utils } from './Utils';
 import { Bitmex, TOrder } from './Bitmex';
+import { HttpCodes } from './HttpCodes';
 
 const AFTER_5: number = 5;
 const AFTER_10: number = 10;
