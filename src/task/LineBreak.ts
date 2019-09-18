@@ -1,12 +1,13 @@
-import { Utils } from './Utils';
-import { Bitmex, TOrder } from './Bitmex';
-import { HttpCodes } from './HttpCodes';
+import { Utils } from '../Utils';
+import { Bitmex, TOrder } from '../stock/Bitmex';
+import { HttpCodes } from '../HttpCodes';
+import { ITask } from './ITask';
 
 const AFTER_5: number = 5;
 const AFTER_10: number = 10;
 const LOOP_SLEEP: number = 5000;
 
-export type TExplain = {
+export type TLineBreakTaskExplain = {
     startDate: Date;
     initPrice: number;
     currentPrice: number;
@@ -15,7 +16,7 @@ export type TExplain = {
     step: number;
 };
 
-export type TTaskOptions = {
+export type TLineBreakTaskOptions = {
     price: number;
     value: number;
     after5: number;
@@ -23,7 +24,7 @@ export type TTaskOptions = {
     moveDirection: 'up' | 'down';
 };
 
-export class Task {
+export class LineBreak implements ITask {
     private readonly startDate: Date;
     private readonly price: number;
     private readonly value: number;
@@ -34,7 +35,10 @@ export class Task {
     private active: boolean;
     private currentHours: number;
 
-    constructor(bitmex: Bitmex, { price, value, after5, side, moveDirection }: TTaskOptions) {
+    constructor(
+        bitmex: Bitmex,
+        { price, value, after5, side, moveDirection }: TLineBreakTaskOptions
+    ) {
         if (!Number(price) || !Number(value) || !Number(after5)) {
             throw { code: HttpCodes.invalidParams, message: 'Invalid params' };
         }
@@ -76,11 +80,11 @@ export class Task {
         await this.bitmex.cancelOrder(this.orderID);
     }
 
-    isActive(): Task['active'] {
+    isActive(): LineBreak['active'] {
         return this.active;
     }
 
-    explain(): TExplain {
+    explain(): TLineBreakTaskExplain {
         let after10Price: number = this.currentPrice;
 
         for (let i: number = 0; i < AFTER_10; i++) {

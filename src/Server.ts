@@ -59,8 +59,12 @@ export class Server {
                     response.body = await this.controller.getStatus();
                     break;
 
-                case 'task':
-                    response.body = await this.controller.makeTask(params);
+                case 'line-break-task':
+                    response.body = await this.controller.makeLineBreakTask(params);
+                    break;
+
+                case 'bart-drop-task':
+                    // TODO -
                     break;
 
                 case 'cancel':

@@ -1,8 +1,9 @@
-import { Bitmex, TPosition } from './Bitmex';
+import { Bitmex, TPosition } from './stock/Bitmex';
 import { Utils } from './Utils';
-import { Task, TExplain, TTaskOptions } from './Task';
+import { LineBreak, TLineBreakTaskExplain, TLineBreakTaskOptions } from './task/LineBreak';
 import { ONE_SECOND } from './Constants';
 import { HttpCodes } from './HttpCodes';
+import { ITask, ITaskExplain } from './task/ITask';
 
 const STATUS_JSON_SPACES: number = 2;
 
@@ -14,14 +15,14 @@ type TStatus = {
               liquidation: number;
           }
         | 'None';
-    tasks: TExplain[];
+    tasks: ITaskExplain[];
     lastSync: Bitmex['lastSync'];
     lastError: Bitmex['lastError'];
 };
 
 export class Controller {
     private readonly bitmex: Bitmex;
-    private readonly tasks: Set<Task>;
+    private readonly tasks: Set<ITask>;
 
     constructor() {
         this.bitmex = new Bitmex();
@@ -58,20 +59,8 @@ export class Controller {
         return JSON.stringify(status, null, STATUS_JSON_SPACES);
     }
 
-    async makeTask(params: TTaskOptions): Promise<string> {
-        try {
-            const task: Task = new Task(this.bitmex, params);
-
-            this.tasks.add(task);
-        } catch (error) {
-            if (error.code === HttpCodes.invalidParams) {
-                return error.message;
-            } else {
-                throw error;
-            }
-        }
-
-        return await this.getStatus();
+    async makeLineBreakTask(params: TLineBreakTaskOptions): Promise<string> {
+        return await this.makeTask(new LineBreak(this.bitmex, params));
     }
 
     async cancel(): Promise<string> {
@@ -82,6 +71,20 @@ export class Controller {
         for (const task of this.tasks) {
             await task.cancel();
             this.tasks.delete(task);
+        }
+
+        return await this.getStatus();
+    }
+
+    private async makeTask(task: ITask): Promise<string> {
+        try {
+            this.tasks.add(task);
+        } catch (error) {
+            if (error.code === HttpCodes.invalidParams) {
+                return error.message;
+            } else {
+                throw error;
+            }
         }
 
         return await this.getStatus();

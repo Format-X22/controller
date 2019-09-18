@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as request from 'request-promise-native';
-import { Utils } from './Utils';
-import { MINUTE_IN_SECONDS, ONE_SECOND } from './Constants';
+import { Utils } from '../Utils';
+import { MINUTE_IN_SECONDS, ONE_SECOND } from '../Constants';
 
 const DOMAIN: string = 'https://www.bitmex.com';
 const API_POINT: string = '/api/v1/';
