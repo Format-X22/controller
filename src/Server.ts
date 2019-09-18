@@ -64,7 +64,7 @@ export class Server {
                     break;
 
                 case 'bart-drop-task':
-                    // TODO -
+                    response.body = await this.controller.makeBartDropTask(params);
                     break;
 
                 case 'cancel':

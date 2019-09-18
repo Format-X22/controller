@@ -1,13 +1,13 @@
 import { Utils } from '../Utils';
 import { Bitmex, TOrder } from '../stock/Bitmex';
 import { HttpCodes } from '../HttpCodes';
-import { ITask } from './ITask';
+import {ITask, ITaskExplain} from './ITask';
 
 const AFTER_5: number = 5;
 const AFTER_10: number = 10;
 const LOOP_SLEEP: number = 5000;
 
-export type TLineBreakTaskExplain = {
+export type TLineBreakTaskExplain = ITaskExplain & {
     startDate: Date;
     initPrice: number;
     currentPrice: number;
@@ -92,6 +92,7 @@ export class LineBreak implements ITask {
         }
 
         return {
+            type: LineBreak.name,
             startDate: this.startDate,
             initPrice: this.price,
             currentPrice: this.currentPrice,
@@ -124,6 +125,7 @@ export class LineBreak implements ITask {
                 return;
             }
 
+            // TODO Check for x1
             if (await this.bitmex.hasPosition()) {
                 await this.cancel();
                 return;

@@ -4,6 +4,7 @@ import { LineBreak, TLineBreakTaskExplain, TLineBreakTaskOptions } from './task/
 import { ONE_SECOND } from './Constants';
 import { HttpCodes } from './HttpCodes';
 import { ITask, ITaskExplain } from './task/ITask';
+import { BartDrop, TBartDropTaskOptions } from './task/BartDrop';
 
 const STATUS_JSON_SPACES: number = 2;
 
@@ -20,6 +21,8 @@ type TStatus = {
     lastError: Bitmex['lastError'];
 };
 
+type TStatusResult = string;
+
 export class Controller {
     private readonly bitmex: Bitmex;
     private readonly tasks: Set<ITask>;
@@ -29,7 +32,7 @@ export class Controller {
         this.tasks = new Set();
     }
 
-    async getStatus(): Promise<string> {
+    async getStatus(): Promise<TStatusResult> {
         await Utils.sleep(ONE_SECOND);
 
         const status: TStatus = {
@@ -59,8 +62,12 @@ export class Controller {
         return JSON.stringify(status, null, STATUS_JSON_SPACES);
     }
 
-    async makeLineBreakTask(params: TLineBreakTaskOptions): Promise<string> {
+    async makeLineBreakTask(params: TLineBreakTaskOptions): Promise<TStatusResult> {
         return await this.makeTask(new LineBreak(this.bitmex, params));
+    }
+
+    async makeBartDropTask(params: TBartDropTaskOptions): Promise<TStatusResult> {
+        return await this.makeTask(new BartDrop(this.bitmex, params));
     }
 
     async cancel(): Promise<string> {
@@ -76,7 +83,7 @@ export class Controller {
         return await this.getStatus();
     }
 
-    private async makeTask(task: ITask): Promise<string> {
+    private async makeTask(task: ITask): Promise<TStatusResult> {
         try {
             this.tasks.add(task);
         } catch (error) {

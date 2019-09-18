@@ -4,4 +4,6 @@ export interface ITask {
     explain(): ITaskExplain;
 }
 
-export type ITaskExplain = object;
+export type ITaskExplain = {
+    type: string
+};
