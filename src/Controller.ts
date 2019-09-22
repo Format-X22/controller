@@ -3,7 +3,7 @@ import { LineBreak, TLineBreakTaskOptions } from './task/LineBreak';
 import { ONE_SECOND } from './Constants';
 import { HttpCodes } from './HttpCodes';
 import { ITask, ITaskExplain } from './task/ITask';
-import { BartDrop, TBartDropTaskOptions } from './task/BartDrop';
+import { BartDrop, TBartDropTaskExitValueOptions, TBartDropTaskOptions } from './task/BartDrop';
 import { IStock, TStockPosition, TStockLastError, TStockLastSync } from './stock/IStock';
 
 const STATUS_JSON_SPACES: number = 2;
@@ -63,11 +63,24 @@ export class Controller {
     }
 
     async makeLineBreakTask(params: TLineBreakTaskOptions): Promise<TStatusResult> {
-        return await this.makeTask(new LineBreak(this.stock, params));
+        await this.makeTask((stock: IStock) => new LineBreak(stock, params), false);
+
+        return 'Ok';
     }
 
     async makeBartDropTask(params: TBartDropTaskOptions): Promise<TStatusResult> {
-        return await this.makeTask(new BartDrop(this.stock, params));
+        await this.makeTask((stock: IStock) => new BartDrop(stock, params), BartDrop);
+
+        return 'Ok';
+    }
+
+    async changeBartDropExitValue(params: TBartDropTaskExitValueOptions): Promise<TStatusResult> {
+        const rawTask: ITask = this.getTaskByType(BartDrop);
+        const task: BartDrop = rawTask as BartDrop;
+
+        await task.changeExitValue(params.exitValue);
+
+        return 'Ok';
     }
 
     async cancel(): Promise<string> {
@@ -83,9 +96,16 @@ export class Controller {
         return await this.getStatus();
     }
 
-    private async makeTask(task: ITask): Promise<TStatusResult> {
+    private async makeTask(
+        taskFn: (stock: IStock) => ITask,
+        uniqueAs: Function | false
+    ): Promise<TStatusResult> {
         try {
-            this.tasks.add(task);
+            if (uniqueAs) {
+                this.checkTaskAsUnique(uniqueAs);
+            }
+
+            this.tasks.add(taskFn(this.stock));
         } catch (error) {
             if (error.code === HttpCodes.invalidParams) {
                 return error.message;
@@ -95,5 +115,26 @@ export class Controller {
         }
 
         return await this.getStatus();
+    }
+
+    private getTaskByType(Type: Function): ITask {
+        for (const task of this.tasks) {
+            if (task instanceof Type) {
+                return task;
+            }
+        }
+
+        throw { code: HttpCodes.invalidParams, message: `No ${Type.name} task!` };
+    }
+
+    private checkTaskAsUnique(uniqueAs: Function): void {
+        for (const task of this.tasks) {
+            if (task instanceof uniqueAs) {
+                throw {
+                    code: HttpCodes.invalidParams,
+                    message: `Already have ${uniqueAs.name} task!`,
+                };
+            }
+        }
     }
 }

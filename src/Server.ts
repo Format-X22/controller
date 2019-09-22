@@ -67,6 +67,10 @@ export class Server {
                     response.body = await this.controller.makeBartDropTask(params);
                     break;
 
+                case 'bart-drop-exit-value':
+                    response.body = await this.controller.changeBartDropExitValue(params);
+                    break;
+
                 case 'cancel':
                     response.body = await this.controller.cancel();
                     break;

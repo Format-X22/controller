@@ -2,10 +2,16 @@ import { ITask, ITaskExplain } from './ITask';
 import { HttpCodes } from '../HttpCodes';
 import { IStock } from '../stock/IStock';
 
+export type TBartDropTaskExitValue = number;
+export type TBartDropTaskExitValueOptions = {
+    exitValue: TBartDropTaskExitValue;
+};
+
 export type TBartDropTaskOptions = {
-    value: number;
     enterPrice: number;
+    enterValue: number;
     exitPrice: number;
+    exitValue: TBartDropTaskExitValue;
     fallbackPrice: number;
     side: 'long' | 'short';
 };
@@ -26,17 +32,24 @@ export class BartDrop implements ITask {
     private active: boolean;
     private inPosition: boolean;
     private readonly startDate: Date;
-    private readonly value: number;
     private readonly enterPrice: number;
+    private readonly enterValue: number;
     private readonly exitPrice: number;
+    private readonly exitValue: number;
     private readonly fallbackPrice: number;
     private readonly side: 'long' | 'short';
 
     constructor(
         stock: IStock,
-        { value, enterPrice, exitPrice, fallbackPrice, side }: TBartDropTaskOptions
+        { enterPrice, enterValue, exitPrice, exitValue, fallbackPrice, side }: TBartDropTaskOptions
     ) {
-        if (!Number(value) || !Number(enterPrice) || !Number(exitPrice) || !Number(fallbackPrice)) {
+        if (
+            !Number(enterPrice) ||
+            !Number(enterValue) ||
+            !Number(exitPrice) ||
+            !Number(exitValue) ||
+            !Number(fallbackPrice)
+        ) {
             throw { code: HttpCodes.invalidParams, message: 'Invalid params' };
         }
 
@@ -51,9 +64,11 @@ export class BartDrop implements ITask {
         this.fallbackPrice = Number(fallbackPrice);
 
         if (side === 'long') {
-            this.value = Number(value);
+            this.enterValue = Number(enterValue);
+            this.exitValue = Number(exitValue);
         } else {
-            this.value = -Number(value);
+            this.enterValue = -Number(enterValue);
+            this.exitValue = -Number(exitValue);
         }
 
         this.stock = stock;
@@ -73,7 +88,7 @@ export class BartDrop implements ITask {
     explain(): TBartDropTaskExplain {
         return {
             type: BartDrop.name,
-            value: this.value,
+            value: this.enterValue,
             enterPrice: this.enterPrice,
             exitPrice: this.exitPrice,
             fallbackPrice: this.fallbackPrice,
@@ -81,6 +96,10 @@ export class BartDrop implements ITask {
             side: this.side,
             startDate: this.startDate,
         };
+    }
+
+    async changeExitValue(exitValue: TBartDropTaskExitValue): Promise<void> {
+        // TODO -
     }
 
     private async start(): Promise<void> {
