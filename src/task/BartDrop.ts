@@ -1,5 +1,5 @@
 import { ITask, ITaskExplain } from './ITask';
-import { HttpCodes } from '../HttpCodes';
+import { HttpCodes } from '../data/HttpCodes';
 import { IStock } from '../stock/IStock';
 
 export type TBartDropTaskExitValue = number;

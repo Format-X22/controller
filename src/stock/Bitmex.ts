@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as request from 'request-promise-native';
-import { Utils } from '../Utils';
-import { MINUTE_IN_SECONDS, ONE_SECOND } from '../Constants';
+import { EventLoop } from '../util/EventLoop';
+import { MINUTE_IN_SECONDS, ONE_SECOND } from '../data/Constants';
 import {
     IStock,
     TStockOrder,
@@ -59,7 +59,7 @@ export class Bitmex implements IStock {
 
         this.lastSync = new Date();
 
-        await Utils.sleep(PING_SLEEP);
+        await EventLoop.sleep(PING_SLEEP);
     }
 
     async getPosition(): Promise<TStockPosition> {
@@ -143,7 +143,7 @@ export class Bitmex implements IStock {
                 console.log(now, error);
                 this.lastError = `${now} :: ${error.message}`;
 
-                await Utils.sleep(REQUEST_RETRY_SLEEP);
+                await EventLoop.sleep(REQUEST_RETRY_SLEEP);
             }
         }
     }

@@ -1,12 +1,13 @@
-import { Utils } from './Utils';
-import { LineBreak, TLineBreakTaskOptions } from './task/LineBreak';
-import { ONE_SECOND } from './Constants';
-import { HttpCodes } from './HttpCodes';
-import { ITask, ITaskExplain } from './task/ITask';
-import { BartDrop, TBartDropTaskExitValueOptions, TBartDropTaskOptions } from './task/BartDrop';
-import { IStock, TStockPosition, TStockLastError, TStockLastSync } from './stock/IStock';
+import { EventLoop } from '../util/EventLoop';
+import { LineBreak, TLineBreakTaskOptions } from '../task/LineBreak';
+import { ONE_SECOND } from '../data/Constants';
+import { HttpCodes } from '../data/HttpCodes';
+import { ITask, ITaskExplain } from '../task/ITask';
+import { BartDrop, TBartDropTaskExitValueOptions, TBartDropTaskOptions } from '../task/BartDrop';
+import { IStock, TStockPosition, TStockLastError, TStockLastSync } from '../stock/IStock';
 
 const STATUS_JSON_SPACES: number = 2;
+const OK_MESSAGE: string = 'Ok';
 
 type TStatus = {
     position:
@@ -33,7 +34,7 @@ export class Controller {
     }
 
     async getStatus(): Promise<TStatusResult> {
-        await Utils.sleep(ONE_SECOND);
+        await EventLoop.sleep(ONE_SECOND);
 
         const status: TStatus = {
             position: 'None',
@@ -63,15 +64,11 @@ export class Controller {
     }
 
     async makeLineBreakTask(params: TLineBreakTaskOptions): Promise<TStatusResult> {
-        await this.makeTask((stock: IStock) => new LineBreak(stock, params), false);
-
-        return 'Ok';
+        return await this.makeTask((stock: IStock) => new LineBreak(stock, params), false);
     }
 
     async makeBartDropTask(params: TBartDropTaskOptions): Promise<TStatusResult> {
-        await this.makeTask((stock: IStock) => new BartDrop(stock, params), BartDrop);
-
-        return 'Ok';
+        return await this.makeTask((stock: IStock) => new BartDrop(stock, params), BartDrop);
     }
 
     async changeBartDropExitValue(params: TBartDropTaskExitValueOptions): Promise<TStatusResult> {
@@ -80,7 +77,7 @@ export class Controller {
 
         await task.changeExitValue(params.exitValue);
 
-        return 'Ok';
+        return OK_MESSAGE;
     }
 
     async cancel(): Promise<string> {
@@ -114,7 +111,7 @@ export class Controller {
             }
         }
 
-        return await this.getStatus();
+        return OK_MESSAGE;
     }
 
     private getTaskByType(Type: Function): ITask {

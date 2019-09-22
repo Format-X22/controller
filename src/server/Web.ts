@@ -1,11 +1,11 @@
 import * as Koa from 'koa';
 import * as bodyParser from 'koa-bodyparser';
 import { Controller } from './Controller';
-import { HttpCodes } from './HttpCodes';
+import { HttpCodes } from '../data/HttpCodes';
 
 const DEFAULT_PORT: number = 3000;
 
-export class Server {
+export class Web {
     private server: Koa;
     private controller: Controller;
 

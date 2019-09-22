@@ -1,5 +1,5 @@
-import { Utils } from '../Utils';
-import { HttpCodes } from '../HttpCodes';
+import { EventLoop } from '../util/EventLoop';
+import { HttpCodes } from '../data/HttpCodes';
 import { ITask, ITaskExplain } from './ITask';
 import { IStock, TStockOrder } from '../stock/IStock';
 
@@ -136,7 +136,7 @@ export class LineBreak implements ITask {
                 this.currentHours = hours;
                 await this.iteration();
             }
-            await Utils.sleep(LOOP_SLEEP);
+            await EventLoop.sleep(LOOP_SLEEP);
         }
     }
 
