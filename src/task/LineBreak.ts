@@ -125,7 +125,6 @@ export class LineBreak implements ITask {
                 return;
             }
 
-            // TODO Check for x1
             if (await this.stock.hasPosition()) {
                 await this.cancel();
                 return;

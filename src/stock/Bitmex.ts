@@ -17,6 +17,7 @@ const DOMAIN: string = 'https://www.bitmex.com';
 const API_POINT: string = '/api/v1/';
 const PING_SLEEP: number = 10000;
 const REQUEST_RETRY_SLEEP: number = 5000;
+const STAY_IN_USD_MAX_LIQUIDATION_PRICE: number = 50000;
 
 type TAuthHeaders = {
     'content-type': 'application/json';
@@ -74,7 +75,11 @@ export class Bitmex implements IStock {
     async hasPosition(): Promise<boolean> {
         const position: TStockPosition = await this.getPosition();
 
-        return Boolean(position && position.avgEntryPrice);
+        return Boolean(
+            position &&
+                position.avgEntryPrice &&
+                position.liquidationPrice < STAY_IN_USD_MAX_LIQUIDATION_PRICE
+        );
     }
 
     async getOrders(): Promise<TStockOrder[]> {
