@@ -1,7 +1,7 @@
 import { Utils } from '../Utils';
-import { Bitmex, TOrder } from '../stock/Bitmex';
 import { HttpCodes } from '../HttpCodes';
-import {ITask, ITaskExplain} from './ITask';
+import { ITask, ITaskExplain } from './ITask';
+import { IStock, TStockOrder } from '../stock/IStock';
 
 const AFTER_5: number = 5;
 const AFTER_10: number = 10;
@@ -29,14 +29,14 @@ export class LineBreak implements ITask {
     private readonly price: number;
     private readonly value: number;
     private readonly step: number;
-    private readonly bitmex: Bitmex;
+    private readonly stock: IStock;
     private orderID: string;
     private currentPrice: number;
     private active: boolean;
     private currentHours: number;
 
     constructor(
-        bitmex: Bitmex,
+        stock: IStock,
         { price, value, after5, side, moveDirection }: TLineBreakTaskOptions
     ) {
         if (!Number(price) || !Number(value) || !Number(after5)) {
@@ -67,7 +67,7 @@ export class LineBreak implements ITask {
             this.step = -(this.price - after5) / AFTER_5;
         }
 
-        this.bitmex = bitmex;
+        this.stock = stock;
         this.orderID = null;
         this.currentPrice = this.price;
         this.active = true;
@@ -77,7 +77,7 @@ export class LineBreak implements ITask {
 
     async cancel(): Promise<void> {
         this.active = false;
-        await this.bitmex.cancelOrder(this.orderID);
+        await this.stock.cancelOrder(this.orderID);
     }
 
     isActive(): LineBreak['active'] {
@@ -110,7 +110,7 @@ export class LineBreak implements ITask {
                 return;
             }
 
-            const orders: TOrder[] = await this.bitmex.getOrders();
+            const orders: TStockOrder[] = await this.stock.getOrders();
             let orderLive: boolean = false;
 
             for (const order of orders) {
@@ -126,7 +126,7 @@ export class LineBreak implements ITask {
             }
 
             // TODO Check for x1
-            if (await this.bitmex.hasPosition()) {
+            if (await this.stock.hasPosition()) {
                 await this.cancel();
                 return;
             }
@@ -142,7 +142,7 @@ export class LineBreak implements ITask {
     }
 
     private async initOrder(): Promise<void> {
-        const result: TOrder = await this.bitmex.placeOrder(this.price, this.value);
+        const result: TStockOrder = await this.stock.placeOrder(this.price, this.value);
 
         this.orderID = result.orderID;
     }
@@ -152,6 +152,6 @@ export class LineBreak implements ITask {
 
         this.currentPrice = price;
 
-        await this.bitmex.moveOrder(this.orderID, price, this.value);
+        await this.stock.moveOrder(this.orderID, price, this.value);
     }
 }

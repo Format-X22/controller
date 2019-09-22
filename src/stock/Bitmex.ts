@@ -2,6 +2,16 @@ import * as crypto from 'crypto';
 import * as request from 'request-promise-native';
 import { Utils } from '../Utils';
 import { MINUTE_IN_SECONDS, ONE_SECOND } from '../Constants';
+import {
+    IStock,
+    TStockOrder,
+    TStockOrderID,
+    TStockPosition,
+    TStockLastError,
+    TStockLastSync,
+    TStockPrice,
+    TStockValue,
+} from './IStock';
 
 const DOMAIN: string = 'https://www.bitmex.com';
 const API_POINT: string = '/api/v1/';
@@ -30,31 +40,20 @@ type TRequestOptions = {
     params: unknown;
 };
 
-type TRequestParamsDict = {
-    orderID: string;
-    price: number;
-    value: number;
-};
+export class Bitmex implements IStock {
+    private lastError?: TStockLastError;
+    private lastSync?: TStockLastSync;
+    private readonly publicKey: string;
+    private readonly privateKey: string;
 
-export type TPosition = {
-    avgEntryPrice: number;
-    timestamp: string;
-    liquidationPrice: number;
-};
+    constructor({ publicKey, privateKey }: { publicKey: string; privateKey: string }) {
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
 
-export type TOrder = {
-    orderID: string;
-};
-
-export class Bitmex {
-    private lastError?: string;
-    private lastSync?: Date;
-
-    constructor() {
         this.startPingLoop().catch();
     }
 
-    async startPingLoop(): Promise<void> {
+    private async startPingLoop(): Promise<void> {
         await this.getPosition();
 
         this.lastSync = new Date();
@@ -62,8 +61,8 @@ export class Bitmex {
         await Utils.sleep(PING_SLEEP);
     }
 
-    async getPosition(): Promise<TPosition> {
-        const positions: TPosition[] = await this.request<TPosition[]>({
+    async getPosition(): Promise<TStockPosition> {
+        const positions: TStockPosition[] = await this.request<TStockPosition[]>({
             point: 'position',
             method: 'GET',
             params: { filter: { symbol: 'XBTUSD' } },
@@ -73,24 +72,21 @@ export class Bitmex {
     }
 
     async hasPosition(): Promise<boolean> {
-        const position: TPosition = await this.getPosition();
+        const position: TStockPosition = await this.getPosition();
 
         return Boolean(position && position.avgEntryPrice);
     }
 
-    async getOrders(): Promise<TOrder[]> {
-        return await this.request<TOrder[]>({
+    async getOrders(): Promise<TStockOrder[]> {
+        return await this.request<TStockOrder[]>({
             point: 'order',
             method: 'GET',
             params: { symbol: 'XBTUSD', filter: { open: true } },
         });
     }
 
-    async placeOrder(
-        price: TRequestParamsDict['price'],
-        value: TRequestParamsDict['value']
-    ): Promise<TOrder> {
-        return await this.request<TOrder>({
+    async placeOrder(price: TStockPrice, value: TStockValue): Promise<TStockOrder> {
+        return await this.request<TStockOrder>({
             point: 'order',
             method: 'POST',
             params: {
@@ -105,9 +101,9 @@ export class Bitmex {
     }
 
     async moveOrder(
-        orderID: TRequestParamsDict['orderID'],
-        price: TRequestParamsDict['price'],
-        value: TRequestParamsDict['value']
+        orderID: TStockOrderID,
+        price: TStockPrice,
+        value: TStockValue
     ): Promise<unknown> {
         return await this.request({
             point: 'order',
@@ -116,7 +112,7 @@ export class Bitmex {
         });
     }
 
-    async cancelOrder(orderID: TRequestParamsDict['orderID']): Promise<unknown> {
+    async cancelOrder(orderID: TStockOrderID): Promise<unknown> {
         return await this.request({
             point: 'order',
             method: 'DELETE',
@@ -124,11 +120,11 @@ export class Bitmex {
         });
     }
 
-    getLastSync(): Bitmex['lastSync'] {
+    getLastSync(): TStockLastSync {
         return this.lastSync;
     }
 
-    getLastError(): Bitmex['lastError'] {
+    getLastError(): TStockLastError {
         return this.lastError;
     }
 
@@ -153,7 +149,7 @@ export class Bitmex {
         const body: string = JSON.stringify(params);
 
         const signature: string = crypto
-            .createHmac('sha256', process.env.bitmexPrivateKey)
+            .createHmac('sha256', this.privateKey)
             .update(`${method}${path}${expires}${body}`)
             .digest('hex');
 
@@ -162,7 +158,7 @@ export class Bitmex {
             Accept: 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
             'api-expires': expires,
-            'api-key': process.env.bitmexPublicKey,
+            'api-key': this.publicKey,
             'api-signature': signature,
         };
 

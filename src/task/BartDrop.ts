@@ -1,6 +1,6 @@
 import { ITask, ITaskExplain } from './ITask';
-import { Bitmex } from '../stock/Bitmex';
 import { HttpCodes } from '../HttpCodes';
+import { IStock } from '../stock/IStock';
 
 export type TBartDropTaskOptions = {
     value: number;
@@ -21,7 +21,7 @@ export type TBartDropTaskExplain = ITaskExplain & {
 };
 
 export class BartDrop implements ITask {
-    private readonly bitmex: Bitmex;
+    private readonly stock: IStock;
     private orderID: string;
     private active: boolean;
     private inPosition: boolean;
@@ -32,7 +32,10 @@ export class BartDrop implements ITask {
     private readonly fallbackPrice: number;
     private readonly side: 'long' | 'short';
 
-    constructor(bitmex: Bitmex, { value, enterPrice, exitPrice, fallbackPrice, side }: TBartDropTaskOptions) {
+    constructor(
+        stock: IStock,
+        { value, enterPrice, exitPrice, fallbackPrice, side }: TBartDropTaskOptions
+    ) {
         if (!Number(value) || !Number(enterPrice) || !Number(exitPrice) || !Number(fallbackPrice)) {
             throw { code: HttpCodes.invalidParams, message: 'Invalid params' };
         }
@@ -53,7 +56,7 @@ export class BartDrop implements ITask {
             this.value = -Number(value);
         }
 
-        this.bitmex = bitmex;
+        this.stock = stock;
         this.orderID = null;
 
         setImmediate(this.start.bind(this));

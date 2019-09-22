@@ -5,5 +5,5 @@ export interface ITask {
 }
 
 export type ITaskExplain = {
-    type: string
+    type: string;
 };
