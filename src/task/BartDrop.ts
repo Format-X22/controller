@@ -68,20 +68,15 @@ export class BartDrop implements ITask {
         stopPrice = Number(stopPrice);
         fallbackPrice = Number(fallbackPrice);
 
-        if (
-            !enterPrice ||
-            !enterValue ||
-            !exitPrice ||
-            !exitValue ||
-            !stopPrice ||
-            !fallbackPrice
-        ) {
-            throw { code: HttpCodes.invalidParams, message: 'Invalid params' };
-        }
-
-        if (side !== 'long' && side !== 'short') {
-            throw { code: HttpCodes.invalidParams, message: 'Invalid side' };
-        }
+        this.validateParams({
+            enterPrice,
+            enterValue,
+            exitPrice,
+            exitValue,
+            stopPrice,
+            fallbackPrice,
+            side,
+        });
 
         this.startDate = new Date();
         this.side = side;
@@ -101,6 +96,41 @@ export class BartDrop implements ITask {
         this.stock = stock;
 
         setImmediate(this.start.bind(this));
+    }
+
+    private validateParams({
+        enterPrice,
+        enterValue,
+        exitPrice,
+        exitValue,
+        stopPrice,
+        fallbackPrice,
+        side,
+    }: TBartDropTaskOptions): void {
+        const code: HttpCodes.invalidParams = HttpCodes.invalidParams;
+
+        if (
+            !enterPrice ||
+            !enterValue ||
+            !exitPrice ||
+            !exitValue ||
+            !stopPrice ||
+            !fallbackPrice
+        ) {
+            throw { code, message: 'Invalid params' };
+        }
+
+        if (side !== 'long' && side !== 'short') {
+            throw { code, message: 'Invalid side' };
+        }
+
+        if (side === 'long' && exitPrice < enterPrice) {
+            throw { code, message: 'Exit < Enter' };
+        }
+
+        if (side === 'short' && exitPrice > enterPrice) {
+            throw { code, message: 'Exit > Enter' };
+        }
     }
 
     async cancel(): Promise<void> {
