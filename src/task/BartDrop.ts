@@ -20,18 +20,22 @@ export type TBartDropTaskOptions = {
     side: 'long' | 'short';
 };
 
-// TODO Improve explain
 export type TBartDropTaskExplain = ITaskExplain & {
-    value: number;
     enterPrice: number;
+    enterValue: number;
     exitPrice: number;
+    exitValue: number;
+    stopPrice: number;
     fallbackPrice: number;
-    inPosition: boolean;
     side: 'long' | 'short';
     startDate: Date;
+    inPosition: boolean;
 };
 
 export class BartDrop implements ITask {
+    private active: boolean = true;
+    private inPosition: boolean = false;
+
     private readonly stock: IStock;
     private enterOrderID: string;
     private exitOrderID: string;
@@ -43,8 +47,6 @@ export class BartDrop implements ITask {
     private stopPrice: number;
     private readonly fallbackPrice: number;
     private readonly side: 'long' | 'short';
-    private active: boolean;
-    private inPosition: boolean = false;
     private enterTimeByCandle: Date;
 
     constructor(
@@ -123,9 +125,11 @@ export class BartDrop implements ITask {
     explain(): TBartDropTaskExplain {
         return {
             type: BartDrop.name,
-            value: this.enterValue,
             enterPrice: this.enterPrice,
+            enterValue: this.enterValue,
             exitPrice: this.exitPrice,
+            exitValue: this.exitValue,
+            stopPrice: this.stopPrice,
             fallbackPrice: this.fallbackPrice,
             inPosition: this.inPosition,
             side: this.side,
