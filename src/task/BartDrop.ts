@@ -15,6 +15,7 @@ export type TBartDropTaskOptions = {
     enterValue: number;
     exitPrice: number;
     exitValue: TBartDropTaskExitValue;
+    stopPrice: number;
     fallbackPrice: number;
     side: 'long' | 'short';
 };
@@ -38,6 +39,7 @@ export class BartDrop implements ITask {
     private readonly enterValue: number;
     private readonly exitPrice: number;
     private exitValue: number;
+    private stopPrice: number;
     private readonly fallbackPrice: number;
     private readonly side: 'long' | 'short';
     private active: boolean;
@@ -46,15 +48,31 @@ export class BartDrop implements ITask {
 
     constructor(
         stock: IStock,
-        { enterPrice, enterValue, exitPrice, exitValue, fallbackPrice, side }: TBartDropTaskOptions
+        {
+            enterPrice,
+            enterValue,
+            exitPrice,
+            exitValue,
+            stopPrice,
+            fallbackPrice,
+            side,
+        }: TBartDropTaskOptions
     ) {
         enterPrice = Number(enterPrice);
         enterValue = Number(enterValue);
         exitPrice = Number(exitPrice);
         exitValue = Number(exitValue);
+        stopPrice = Number(stopPrice);
         fallbackPrice = Number(fallbackPrice);
 
-        if (!enterPrice || !enterValue || !exitPrice || !exitValue || !fallbackPrice) {
+        if (
+            !enterPrice ||
+            !enterValue ||
+            !exitPrice ||
+            !exitValue ||
+            !stopPrice ||
+            !fallbackPrice
+        ) {
             throw { code: HttpCodes.invalidParams, message: 'Invalid params' };
         }
 
@@ -66,6 +84,7 @@ export class BartDrop implements ITask {
         this.side = side;
         this.enterPrice = enterPrice;
         this.exitPrice = exitPrice;
+        this.stopPrice = stopPrice;
         this.fallbackPrice = fallbackPrice;
 
         if (side === 'long') {
@@ -158,5 +177,7 @@ export class BartDrop implements ITask {
         }
 
         // TODO Handle fallback time end
+        // TODO Handle fallback price guard
+        // TODO Add stop with "one cancel other"
     }
 }
