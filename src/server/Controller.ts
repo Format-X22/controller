@@ -72,7 +72,7 @@ export class Controller {
     }
 
     async changeBartDropExitValue(params: TBartDropTaskExitValueOptions): Promise<TStatusResult> {
-        const rawTask: ITask = this.getTaskByType(BartDrop);
+        const rawTask: ITask = this.getActiveTaskByType(BartDrop);
         const task: BartDrop = rawTask as BartDrop;
 
         await task.changeExitValue(params.exitValue);
@@ -114,9 +114,9 @@ export class Controller {
         return OK_MESSAGE;
     }
 
-    private getTaskByType(Type: Function): ITask {
+    private getActiveTaskByType(Type: Function): ITask {
         for (const task of this.tasks) {
-            if (task instanceof Type) {
+            if (task.isActive() && task instanceof Type) {
                 return task;
             }
         }

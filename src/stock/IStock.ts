@@ -5,6 +5,7 @@ export interface IStock {
     placeOrder(price: TStockPrice, value: TStockValue): Promise<TStockOrder>;
     moveOrder(orderID: TStockOrderID, price: TStockPrice, value: TStockValue): Promise<unknown>;
     cancelOrder(orderID: TStockOrderID): Promise<unknown>;
+    hasOrder(orderID: TStockOrderID): Promise<boolean>;
     getLastSync(): TStockLastSync;
     getLastError(): TStockLastError;
 }

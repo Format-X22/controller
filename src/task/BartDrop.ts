@@ -1,6 +1,9 @@
 import { ITask, ITaskExplain } from './ITask';
 import { HttpCodes } from '../data/HttpCodes';
-import { IStock } from '../stock/IStock';
+import { IStock, TStockOrder } from '../stock/IStock';
+import { EventLoop } from '../util/EventLoop';
+
+const ITERATION_SLEEP_MS: number = 5000;
 
 export type TBartDropTaskExitValue = number;
 export type TBartDropTaskExitValueOptions = {
@@ -28,28 +31,30 @@ export type TBartDropTaskExplain = ITaskExplain & {
 
 export class BartDrop implements ITask {
     private readonly stock: IStock;
-    private orderID: string;
-    private active: boolean;
-    private inPosition: boolean;
+    private enterOrderID: string;
+    private exitOrderID: string;
     private readonly startDate: Date;
     private readonly enterPrice: number;
     private readonly enterValue: number;
     private readonly exitPrice: number;
-    private readonly exitValue: number;
+    private exitValue: number;
     private readonly fallbackPrice: number;
     private readonly side: 'long' | 'short';
+    private active: boolean;
+    private inPosition: boolean = false;
+    private enterTimeByCandle: Date;
 
     constructor(
         stock: IStock,
         { enterPrice, enterValue, exitPrice, exitValue, fallbackPrice, side }: TBartDropTaskOptions
     ) {
-        if (
-            !Number(enterPrice) ||
-            !Number(enterValue) ||
-            !Number(exitPrice) ||
-            !Number(exitValue) ||
-            !Number(fallbackPrice)
-        ) {
+        enterPrice = Number(enterPrice);
+        enterValue = Number(enterValue);
+        exitPrice = Number(exitPrice);
+        exitValue = Number(exitValue);
+        fallbackPrice = Number(fallbackPrice);
+
+        if (!enterPrice || !enterValue || !exitPrice || !exitValue || !fallbackPrice) {
             throw { code: HttpCodes.invalidParams, message: 'Invalid params' };
         }
 
@@ -59,26 +64,36 @@ export class BartDrop implements ITask {
 
         this.startDate = new Date();
         this.side = side;
-        this.enterPrice = Number(enterPrice);
-        this.exitPrice = Number(exitPrice);
-        this.fallbackPrice = Number(fallbackPrice);
+        this.enterPrice = enterPrice;
+        this.exitPrice = exitPrice;
+        this.fallbackPrice = fallbackPrice;
 
         if (side === 'long') {
-            this.enterValue = Number(enterValue);
-            this.exitValue = Number(exitValue);
+            this.enterValue = enterValue;
+            this.exitValue = exitValue;
         } else {
-            this.enterValue = -Number(enterValue);
-            this.exitValue = -Number(exitValue);
+            this.enterValue = -enterValue;
+            this.exitValue = -exitValue;
         }
 
         this.stock = stock;
-        this.orderID = null;
 
         setImmediate(this.start.bind(this));
     }
 
     async cancel(): Promise<void> {
-        // TODO -
+        const hasEnterOrder: boolean = await this.stock.hasOrder(this.enterOrderID);
+        const hasExitOrder: boolean = await this.stock.hasOrder(this.exitOrderID);
+
+        if (hasEnterOrder) {
+            await this.stock.cancelOrder(this.enterOrderID);
+        }
+
+        if (hasExitOrder) {
+            await this.stock.cancelOrder(this.exitOrderID);
+        }
+
+        this.active = false;
     }
 
     isActive(): boolean {
@@ -99,10 +114,49 @@ export class BartDrop implements ITask {
     }
 
     async changeExitValue(exitValue: TBartDropTaskExitValue): Promise<void> {
-        // TODO -
+        await this.stock.moveOrder(this.exitOrderID, this.exitPrice, exitValue);
+
+        this.exitValue = exitValue;
     }
 
     private async start(): Promise<void> {
-        // TODO -
+        await this.placeInitOrders();
+
+        while (true) {
+            await EventLoop.sleep(ITERATION_SLEEP_MS);
+
+            if (!this.active) {
+                break;
+            }
+
+            await this.iteration();
+        }
+    }
+
+    private async placeInitOrders(): Promise<void> {
+        const enter: TStockOrder = await this.stock.placeOrder(this.enterPrice, this.enterValue);
+        const exit: TStockOrder = await this.stock.placeOrder(this.exitPrice, this.exitValue);
+
+        this.enterOrderID = enter.orderID;
+        this.exitOrderID = exit.orderID;
+    }
+
+    private async iteration(): Promise<void> {
+        const hasExitOrder: boolean = await this.stock.hasOrder(this.exitOrderID);
+
+        if (!hasExitOrder) {
+            this.active = false;
+            return;
+        }
+
+        const hasPosition: boolean = await this.stock.hasPosition();
+
+        if (hasPosition && !this.inPosition) {
+            this.inPosition = true;
+
+            // TODO Calc enter time by candle
+        }
+
+        // TODO Handle fallback time end
     }
 }

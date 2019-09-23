@@ -125,6 +125,18 @@ export class Bitmex implements IStock {
         });
     }
 
+    async hasOrder(orderID: TStockOrderID): Promise<boolean> {
+        const orders: TStockOrder[] = await this.getOrders();
+
+        for (const order of orders) {
+            if (order.orderID === orderID) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     getLastSync(): TStockLastSync {
         return this.lastSync;
     }
