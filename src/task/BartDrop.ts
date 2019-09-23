@@ -20,6 +20,7 @@ export type TBartDropTaskOptions = {
     side: 'long' | 'short';
 };
 
+// TODO Improve explain
 export type TBartDropTaskExplain = ITaskExplain & {
     value: number;
     enterPrice: number;

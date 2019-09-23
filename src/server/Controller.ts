@@ -5,6 +5,7 @@ import { HttpCodes } from '../data/HttpCodes';
 import { ITask, ITaskExplain } from '../task/ITask';
 import { BartDrop, TBartDropTaskExitValueOptions, TBartDropTaskOptions } from '../task/BartDrop';
 import { IStock, TStockPosition, TStockLastError, TStockLastSync } from '../stock/IStock';
+import { FlagFlow, TFlagFlowTaskExitValueOptions, TFlagFlowTaskOptions } from '../task/FlagFlow';
 
 const STATUS_JSON_SPACES: number = 2;
 const OK_MESSAGE: string = 'Ok';
@@ -74,6 +75,19 @@ export class Controller {
     async changeBartDropExitValue(params: TBartDropTaskExitValueOptions): Promise<TStatusResult> {
         const rawTask: ITask = this.getActiveTaskByType(BartDrop);
         const task: BartDrop = rawTask as BartDrop;
+
+        await task.changeExitValue(params.exitValue);
+
+        return OK_MESSAGE;
+    }
+
+    async makeFlagFlowTask(params: TFlagFlowTaskOptions): Promise<TStatusResult> {
+        return await this.makeTask((stock: IStock) => new FlagFlow(stock, params), FlagFlow);
+    }
+
+    async changeFlagFlowExitValue(params: TFlagFlowTaskExitValueOptions): Promise<TStatusResult> {
+        const rawTask: ITask = this.getActiveTaskByType(FlagFlow);
+        const task: FlagFlow = rawTask as FlagFlow;
 
         await task.changeExitValue(params.exitValue);
 

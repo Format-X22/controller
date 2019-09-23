@@ -71,6 +71,14 @@ export class Web {
                     response.body = await this.controller.changeBartDropExitValue(params);
                     break;
 
+                case 'flag-flow-task':
+                    response.body = await this.controller.makeFlagFlowTask(params);
+                    break;
+
+                case 'flag-flow-exit-value':
+                    response.body = await this.controller.changeFlagFlowExitValue(params);
+                    break;
+
                 case 'cancel':
                     response.body = await this.controller.cancel();
                     break;
